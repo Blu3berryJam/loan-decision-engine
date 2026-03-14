@@ -23,12 +23,16 @@ def check_loan(request: LoanRequest):
     modifier = valid_personal_codes.get(request.personal_code, None)
     if modifier is None:
         raise HTTPException(status_code=400, detail="Invalid personal code")
-    
-    #=========================================================================================================
-    # Here I will implement the logic to calculate the loan approval based on the amount, period, and modifier
-    #=========================================================================================================
+    if modifier == "debt":
+        return {"message": "Loan denied due to debt"}
 
-    return {"message": "Loan request is valid", "modifier": modifier}
+    # credit score = (credit modifier / loan amount) * loan period
+    # amount = (modifier * loan period), when credit score is 1
+    max = modifier * request.period  
+    if max < request.amount:
+        return {"message": "Loan denied", "max_approved_amount": max}
+    else:
+        return {"message": "Loan approved", "max_approved_amount": max}
 
 
 if __name__ == "__main__":
