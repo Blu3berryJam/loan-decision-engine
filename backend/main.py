@@ -1,9 +1,22 @@
 import json
+import os
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 import uvicorn
+from dotenv import load_dotenv
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+load_dotenv()
+origins_raw = os.getenv("ALLOWED_ORIGINS", "*")
+origins = origins_raw.split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Definition of the data model for the loan request
 class LoanRequest(BaseModel):
@@ -36,4 +49,5 @@ def check_loan(request: LoanRequest):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    debug_mode = os.getenv("DEBUG", "False") == "True"
+    uvicorn.run(app, host="127.0.0.1", port=8000, reload=debug_mode)
